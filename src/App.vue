@@ -1,15 +1,36 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useSwal } from 'vue-sweetalert2'
+
+const swal = useSwal()
 
 const nom = ref('')
 const email = ref('')
 const telephone = ref('')
-
 const recherche = ref('')
 const contacts = ref([])
 
 function ajouterContact() {
-  if (!nom.value || !email.value || !telephone.value) return
+  if (!nom.value || !email.value || !telephone.value) {
+    swal.fire({
+      icon: 'warning',
+      title: 'Champs manquants',
+      text: 'Veuillez remplir tous les champs.',
+      confirmButtonText: 'OK'
+    })
+    return
+  }
+
+  const telValide = /^\+\d{13}$/.test(telephone.value.trim())
+  if (!telValide) {
+    swal.fire({
+      icon: 'error',
+      title: 'Téléphone invalide',
+      text: 'Le format attendu est +22997000000 (+ suivi de 11 chiffres).',
+      confirmButtonText: 'Corriger'
+    })
+    return
+  }
 
   contacts.value.push({
     id: Date.now(),
@@ -21,10 +42,35 @@ function ajouterContact() {
   nom.value = ''
   email.value = ''
   telephone.value = ''
+
+  swal.fire({
+    icon: 'success',
+    title: 'Contact ajouté',
+    timer: 1500,
+    showConfirmButton: false
+  })
 }
 
-function supprimerContact(id) {
-  contacts.value = contacts.value.filter(c => c.id !== id)
+async function supprimerContact(id) {
+  const result = await swal.fire({
+    icon: 'warning',
+    title: 'Supprimer ce contact ?',
+    text: 'Cette action est irréversible.',
+    showCancelButton: true,
+    confirmButtonText: 'Supprimer',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: '#e74c3c'
+  })
+
+  if (result.isConfirmed) {
+    contacts.value = contacts.value.filter(c => c.id !== id)
+    swal.fire({
+      icon: 'success',
+      title: 'Contact supprimé',
+      timer: 1200,
+      showConfirmButton: false
+    })
+  }
 }
 
 const contactsFiltres = computed(() => {
