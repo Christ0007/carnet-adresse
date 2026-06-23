@@ -8,7 +8,15 @@ const nom = ref('')
 const email = ref('')
 const telephone = ref('')
 const recherche = ref('')
+
+
+
 const contacts = ref(JSON.parse(localStorage.getItem('contacts') || '[]'))
+
+const contactEnEdition = ref(null)
+const nomEdit = ref('')
+const emailEdit = ref('')
+const telephoneEdit = ref('')
 
 watch(contacts, (valeur) => {
   localStorage.setItem('contacts', JSON.stringify(valeur))
@@ -88,9 +96,55 @@ async function supprimerContact(id) {
   }
 }
 
+function ouvrirEdition(contact) {
+  contactEnEdition.value = contact.id
+  nomEdit.value = contact.nom
+  emailEdit.value = contact.email
+  telephoneEdit.value = contact.telephone
+}
+
+async function sauvegarderEdition() {
+  if (!nomEdit.value || !emailEdit.value || !telephoneEdit.value) {
+    swal.fire({ icon: 'warning', title: 'Champs manquants', text: 'Veuillez remplir tous les champs.', confirmButtonText: 'OK' })
+    return
+  }
+
+  const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEdit.value.trim())
+  if (!emailValide) {
+    swal.fire({ icon: 'error', title: 'Email invalide', text: 'Le format attendu est exemple@domaine.com', confirmButtonText: 'Corriger' })
+    return
+  }
+
+  const telValide = /^\d{10}$/.test(telephoneEdit.value.trim())
+  if (!telValide) {
+    swal.fire({ icon: 'error', title: 'Téléphone invalide', text: 'Le format attendu est 0022901234567 (00229 + 8 chiffres).', confirmButtonText: 'Corriger' })
+    return
+  }
+
+  const index = contacts.value.findIndex(c => c.id === contactEnEdition.value)
+  if (index !== -1) {
+    contacts.value[index] = {
+      ...contacts.value[index],
+      nom: nomEdit.value,
+      email: emailEdit.value,
+      telephone: telephoneEdit.value
+    }
+  }
+
+  contactEnEdition.value = null
+  swal.fire({ icon: 'success', title: 'Contact modifié', timer: 1500, showConfirmButton: false })
+}
+
+function annulerEdition() {
+  contactEnEdition.value = null
+}
+
 const contactsFiltres = computed(() => {
+  const terme = recherche.value.toLowerCase()
   return contacts.value.filter(c =>
-    c.nom.toLowerCase().includes(recherche.value.toLowerCase())
+    c.nom.toLowerCase().includes(terme) ||
+    c.email.toLowerCase().includes(terme) ||
+    c.telephone.includes(terme)
   )
 })
 </script>
@@ -120,19 +174,29 @@ const contactsFiltres = computed(() => {
 
     <!-- LISTE -->
     <div class="list">
-      <div
-        v-for="contact in contactsFiltres"
-        :key="contact.id"
-        class="card"
-      >
+    <div
+      v-for="contact in contactsFiltres"
+      :key="contact.id"
+      class="card"
+    >
+      <!-- Mode affichage normal -->
+      <template v-if="contactEnEdition !== contact.id">
         <p><strong>{{ contact.nom }}</strong></p>
         <p>{{ contact.email }}</p>
         <p>{{ contact.telephone }}</p>
+        <button @click="ouvrirEdition(contact)">Modifier</button>
+        <button @click="supprimerContact(contact.id)">Supprimer</button>
+      </template>
 
-        <button @click="supprimerContact(contact.id)">
-          Supprimer
-        </button>
-      </div>
+      <!-- Mode édition -->
+      <template v-else>
+        <input v-model="nomEdit" placeholder="Nom" />
+        <input v-model="emailEdit" placeholder="Email" />
+        <input v-model="telephoneEdit" placeholder="Téléphone" />
+        <button @click="sauvegarderEdition">Sauvegarder</button>
+        <button @click="annulerEdition">Annuler</button>
+      </template>
+    </div>
     </div>
 
   </div>
@@ -184,5 +248,14 @@ button {
 .card {
   border: 1px solid #ddd;
   padding: 10px;
+}
+
+.card input{
+  margin: 5px;
+}
+
+.card button{
+    align-items: flex-start;
+    margin-right: 10px;
 }
 </style>
