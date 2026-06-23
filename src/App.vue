@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useSwal } from 'vue-sweetalert2'
+import { ref, computed, inject } from 'vue'
+const swal = inject('$swal')
 
-const swal = useSwal()
+
 
 const nom = ref('')
 const email = ref('')
@@ -21,16 +21,27 @@ function ajouterContact() {
     return
   }
 
-  const telValide = /^\+\d{13}$/.test(telephone.value.trim())
-  if (!telValide) {
-    swal.fire({
-      icon: 'error',
-      title: 'Téléphone invalide',
-      text: 'Le format attendu est +22997000000 (+ suivi de 11 chiffres).',
-      confirmButtonText: 'Corriger'
-    })
-    return
-  }
+const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+if (!emailValide) {
+  swal.fire({
+    icon: 'error',
+    title: 'Email invalide',
+    text: 'Le format attendu est exemple@domaine.com',
+    confirmButtonText: 'Corriger'
+  })
+  return
+}
+
+const telValide = /^\d{10}$/.test(telephone.value.trim())
+if (!telValide) {
+  swal.fire({
+    icon: 'error',
+    title: 'Téléphone invalide',
+    text: 'Le format attendu est 0123456789 (8 chiffres).',
+    confirmButtonText: 'Corriger'
+  })
+  return
+}
 
   contacts.value.push({
     id: Date.now(),
