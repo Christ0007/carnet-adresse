@@ -77,7 +77,7 @@ function ajouterContact() {
 async function supprimerContact(id) {
   const result = await swal.fire({
     icon: 'warning',
-    title: 'Supprimer ce contact ?',
+    title: `Supprimer ce contact ?`,
     text: 'Cette action est irréversible.',
     showCancelButton: true,
     confirmButtonText: 'Supprimer',
