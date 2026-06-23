@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 const swal = inject('$swal')
 
 
@@ -8,7 +8,11 @@ const nom = ref('')
 const email = ref('')
 const telephone = ref('')
 const recherche = ref('')
-const contacts = ref([])
+const contacts = ref(JSON.parse(localStorage.getItem('contacts') || '[]'))
+
+watch(contacts, (valeur) => {
+  localStorage.setItem('contacts', JSON.stringify(valeur))
+}, { deep: true })
 
 function ajouterContact() {
   if (!nom.value || !email.value || !telephone.value) {
@@ -21,27 +25,27 @@ function ajouterContact() {
     return
   }
 
-const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
-if (!emailValide) {
-  swal.fire({
-    icon: 'error',
-    title: 'Email invalide',
-    text: 'Le format attendu est exemple@domaine.com',
-    confirmButtonText: 'Corriger'
-  })
-  return
-}
+  const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+  if (!emailValide) {
+    swal.fire({
+      icon: 'error',
+      title: 'Email invalide',
+      text: 'Le format attendu est exemple@domaine.com',
+      confirmButtonText: 'Corriger'
+    })
+    return
+  }
 
-const telValide = /^\d{10}$/.test(telephone.value.trim())
-if (!telValide) {
-  swal.fire({
-    icon: 'error',
-    title: 'Téléphone invalide',
-    text: 'Le format attendu est 0123456789 (8 chiffres).',
-    confirmButtonText: 'Corriger'
-  })
-  return
-}
+  const telValide = /^\d{10}$/.test(telephone.value.trim())
+  if (!telValide) {
+    swal.fire({
+      icon: 'error',
+      title: 'Téléphone invalide',
+      text: 'Le format attendu est 0123456789 (8 chiffres).',
+      confirmButtonText: 'Corriger'
+    })
+    return
+  }
 
   contacts.value.push({
     id: Date.now(),
@@ -158,7 +162,7 @@ input {
 }
 
 .search {
-  width: 100%;
+  width: 96%;
   padding: 10px;
   margin-bottom: 15px;
 }
