@@ -1,7 +1,6 @@
   <script setup>
   import { ref, computed, inject, watch } from 'vue'
-  import Swal from 'sweetalert2'
-  
+  import swal from 'sweetalert2'
 
 
   const nom = ref('')
